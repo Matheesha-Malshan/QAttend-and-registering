@@ -1,0 +1,15 @@
+
+from facenet_pytorch import InceptionResnetV1
+import torch
+import face_detection as fd
+from distance_model import distance_model
+import numpy as np
+#checking method
+
+f_model=InceptionResnetV1(pretrained='vggface2').eval()
+
+
+embeddings = np.load("embeddings.npy")
+labels = np.load("labels.npy")
+THRESHOLD = 0.7
+previous_label = None  
