@@ -1,31 +1,29 @@
 import cv2
-from facenet_pytorch import MTCNN 
+from facenet_pytorch import MTCNN
 
+class FaceDetector:
+    def __init__(self):
 
-detector=MTCNN(keep_all=True)
-cap=cv2.VideoCapture(0)
+        self.detector = MTCNN(keep_all=True)
+        self.cap = cv2.VideoCapture(0)
+        self.latest_frame = None
+        self.running = True
 
-while True:
-    ret,frame=cap.read()
+    def read_and_detect(self):
+        ret, frame = self.cap.read()
+        if not ret:
+            self.running = False
+            return None, None
 
-    if not ret:
-        break
-    r_frame=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+        rgb_frame=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        boxes, _=self.detector.detect(rgb_frame)
+        self.latest_frame=rgb_frame
 
-    boxes, _=detector.detect(r_frame)
+        return frame,boxes
 
-    if boxes is not None:
-        for box in boxes:
-            x1,y1,x2,y2=map(int,box)
-            x1,y1,x2,y2=max(0, x1),max(0, y1),min(frame.shape[1], x2), min(frame.shape[0], y2)
-            color = (0, 255, 0)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+    def release(self):
+        self.cap.release()
+        cv2.destroyAllWindows()
 
-    cv2.imshow("Face Recognition", frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break    
-
-
-cap.release()
-cv2.destroyAllWindows()
+    def get_latest_frame(self):
+        return self.latest_frame
