@@ -1,4 +1,4 @@
-
+"""
 import cv2
 import numpy as np
 
@@ -37,7 +37,7 @@ class Distance_model:
 
     def use_model(self,frame):
    
-        focal_length=451.875
+        focal_length=523.125
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
         
@@ -68,4 +68,7 @@ class Distance_model:
             }
 
 #dm=Distance_model()
-#dm.use_model()
+#dm.train_model()
+"""
+import numpy as np
+

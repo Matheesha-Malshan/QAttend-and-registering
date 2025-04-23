@@ -14,9 +14,8 @@ class Input_pipe:
         tensors=tf.expand_dims(tensors,axis=0)
         return tensors.numpy()
     
-    def normalisze_data(self):
-        nor_data,lables=self.data/255,self.labels
-        return nor_data,lables
+    def normalize_data(self,data):
+        return tf.reshape(tf.linalg.l2_normalize(data,axis=1),shape=(-1,1))
     
-    def input_(self):
-        nor_data=nor_data.map(self.normalize_data(self.data,self.labels))
+    def distance(self,embeddings,new_embedding):
+        return tf.norm(embeddings-new_embedding,axis=1)

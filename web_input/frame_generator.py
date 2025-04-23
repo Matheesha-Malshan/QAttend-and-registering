@@ -3,9 +3,12 @@ import base64
 import asyncio
 import websockets
 import json
+import requests
+
+durl="ws://localhost:8000/ws"
 
 async def send_frames():
-    uri = "ws://localhost:8000/ws"
+    uri =durl
     async with websockets.connect(uri) as websocket:
         
         cap = cv2.VideoCapture(0) 
@@ -24,23 +27,38 @@ async def send_frames():
             response = await websocket.recv()
             fdata = json.loads(response)
 
-            if fdata and 'error' not in fdata:
-                print(f"Distance: {fdata['distance']:.2f} cm | x: {int(fdata['x'])} | y: {int(fdata['y'])} | w: {int(fdata['w'])} | h: {int(fdata['h'])}")
+            if fdata and fdata.get("status") == "success":
+                data = fdata["data"]
+                print(f"Distance: {data['distance']:.2f} cm | x: {int(data['x'])} | y: {int(data['y'])} | w: {int(data['w'])} | h: {int(data['h'])}")
                 
                 cv2.rectangle(frame,
-                                  (int(fdata["x"]),int(fdata["y"])),
-                                  (int(fdata["x"]) +int(fdata["w"]), int(fdata["y"])+ int(fdata["h"])),
-                                  (255, 0, 0), 2)
-                cv2.putText(frame, f"Distance: {fdata['distance']:.2f} cm",
-                                (int(fdata["x"]),int(fdata["y"])- 10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.9,
-                                (0, 255, 0), 2)
+                            (int(data["x"]), int(data["y"])),
+                            (int(data["x"]) + int(data["w"]), int(data["y"]) + int(data["h"])),
+                            (255, 0, 0), 2)
+                
+                cv2.putText(frame, f"Distance: {data['distance']:.2f} cm",
+                            (int(data["x"]), int(data["y"]) - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9,
+                            (0, 255, 0), 2)
+                
                 cv2.imshow('frame',frame)
 
-            else:
-                print("[INFO] No face detected.")
-
-          
+            elif fdata.get("status") == "error":
+                print(f"[INFO] {fdata['message']}")
+            
+            elif fdata.get("status")=="stop":
+                print(f"stop framing{fdata['message']}")
+                
+                user_input=input("Enter yes or no")
+                
+                if user_input.lower() == "yes":
+                    response = requests.post("http://localhost:8000/request",
+                                              json={"command":"yes"})
+                    print(response.json())
+                elif user_input.lower() =="no":
+                    response = requests.post("http://localhost:8000/request",
+                                              json={"command":"no"})
+                    print(response.json())
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
