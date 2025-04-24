@@ -5,10 +5,8 @@ import websockets
 import json
 import requests
 
-durl="ws://localhost:8000/ws"
-
 async def send_frames():
-    uri =durl
+    uri ="ws://localhost:8000/ws"
     async with websockets.connect(uri) as websocket:
         
         cap = cv2.VideoCapture(0) 
@@ -20,14 +18,15 @@ async def send_frames():
 
             _, buffer = cv2.imencode('.jpg', frame)
             jpg_as_text = base64.b64encode(buffer).decode('utf-8')
-           
+
+            
             await websocket.send(jpg_as_text)
             await asyncio.sleep(0.1)  
 
             response = await websocket.recv()
             fdata = json.loads(response)
 
-            if fdata and fdata.get("status") == "success":
+            if fdata and fdata.get("status") =="yet":
                 data = fdata["data"]
                 print(f"Distance: {data['distance']:.2f} cm | x: {int(data['x'])} | y: {int(data['y'])} | w: {int(data['w'])} | h: {int(data['h'])}")
                 
@@ -46,19 +45,25 @@ async def send_frames():
             elif fdata.get("status") == "error":
                 print(f"[INFO] {fdata['message']}")
             
+            elif fdata.get("status") == "continue":
+                print(f"[INFO] {fdata['message']}")
+            
             elif fdata.get("status")=="stop":
                 print(f"stop framing{fdata['message']}")
                 
-                user_input=input("Enter yes or no")
+                user_input=input("Enter your name(if yes) otherwise no:")
                 
-                if user_input.lower() == "yes":
-                    response = requests.post("http://localhost:8000/request",
-                                              json={"command":"yes"})
-                    print(response.json())
-                elif user_input.lower() =="no":
-                    response = requests.post("http://localhost:8000/request",
-                                              json={"command":"no"})
-                    print(response.json())
+                if user_input.lower() == "no":
+                    response = requests.post("http://localhost:8000/request/",
+                                              json={"name":user_input})
+                    print(response.json()["status"])
+                    websocket = await websockets.connect("ws://localhost:8000/ws")
+                else:
+                    response = requests.post("http://localhost:8000/request/",
+                                              json={"name":user_input})
+                    print(response.json()["status"])
+                    websocket = await websockets.connect("ws://localhost:8000/ws")
+                  
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 

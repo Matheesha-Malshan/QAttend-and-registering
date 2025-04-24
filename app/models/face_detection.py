@@ -4,15 +4,15 @@ from facenet_pytorch import InceptionResnetV1
 import torch
 from app.services.input_pipeline import Input_pipe  
 import numpy as np
-import json
-import websocket
+from app.api.endpoints.health import client
 
 make_data= Input_pipe()
 face_recognizer = InceptionResnetV1(pretrained='vggface2').eval()
 embeddings = np.load(r"C:\Users\HP\dis\app\models\embeddings_.npy")
 labels = np.load(r"C:\Users\HP\dis\app\models\labels_.npy")
-dis=[]
+dist=[]
 embedding_list=[]
+
 class FaceDetector:
     def __init__(self):
 
@@ -22,7 +22,7 @@ class FaceDetector:
 
         rgb_frame=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         boxes,_=self.detector.detect(rgb_frame)
-        
+        print("5")
         if boxes is not None:
             shape_=boxes.shape[0]
             big_box=np.ones([shape_,4])
@@ -48,26 +48,34 @@ class FaceDetector:
             
             nor_embeddings= (embedding/np.linalg.norm(embedding)).reshape(1,-1)
             embedding_list.append(nor_embeddings)
-            
-            distances = np.linalg.norm(nor_embeddings-embedding, axis=1)
+            vector=nor_embeddings.flatten().tolist()
+         
+            search_result=client.search(
+            collection_name="face",
+            query_vector=vector,  # should match the size of your vectors
+            limit=1  # Number of nearest vectors to return
+                 )
+            if search_result:
+                distances = [result.score for result in search_result]
+                dist.append(distances)
+            else:
+                distance=None
+    
+            dis_flattened=[item for sublist in dist for item in sublist]
+            cou = len([i for i in dis_flattened if 8<i])
 
-            min_distance = np.min(distances)
-            min_index = np.argmin(distances)
-
-            dis.append(min_index)
-            cou=len([i for i in dis if 7 < i])
-            
-            if (len(dis)>50):
+            if (len(dist)>25):
 
                 if cou>15:
-                    return {"status":"stop",
+                    return {"status":"continue",
                             "message":"registered"}
                 else:
                     return {"status":"stop",
                             "message":"un registered"}
                     
             else:
-                return {"status":"continue"}
+                return {"status":"continuee"}
+
         else:
             return {
                     "status":"no face detected"

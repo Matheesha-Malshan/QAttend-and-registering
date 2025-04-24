@@ -65,16 +65,30 @@ class Distance_model:
                 closest_dis_in=np.argmin(matrix[:,0])
                 cl_distance=matrix[closest_dis_in]
                 
-                return{
+                if cl_distance[0]<40:
+                    return{
 
-                    "status":"success",
-                    "data":{
-                    "distance":cl_distance[0],
-                    "x":cl_distance[1],
-                    "y":cl_distance[2],
-                    "w":cl_distance[3],
-                    "h":cl_distance[4]
+                        "status":"ready",
+                        "data":{
+                        "distance":cl_distance[0],
+                        "x":cl_distance[1],
+                        "y":cl_distance[2],
+                        "w":cl_distance[3],
+                        "h":cl_distance[4]
+                        
                         }
+                    }
+                else: 
+                    return{
+
+                        "status":"yet",
+                        "data":{
+                        "distance":cl_distance[0],
+                        "x":cl_distance[1],
+                        "y":cl_distance[2],
+                        "w":cl_distance[3],
+                        "h":cl_distance[4]
+                            }
                     }
             else:
                 return {
