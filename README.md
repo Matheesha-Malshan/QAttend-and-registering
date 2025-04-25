@@ -12,7 +12,7 @@ This project combines machine learning, computer vision, and vector databases to
 - Stores and retrieves facial embeddings using **Qdrant**, a vector similarity search engine
 - Runs the backend using **FastAPI** for API communication
 
----
+---Tensorflow data preprocessing and pytorch DL libries are used to complete the task
 
 ## 📦 Features
 
@@ -29,12 +29,12 @@ This project combines machine learning, computer vision, and vector databases to
 
 | Component       | Stack/Library         |
 |-----------------|------------------------|
-| Face Detection  | OpenCV, Dlib / FaceNet |
+| Face Detection  | OpenCV, web cam connection|
 | Distance Model  | Custom ML Model (depth estimation) |
 | Backend         | FastAPI (Python)       |
 | Vector Database | Qdrant (self-hosted or cloud) |
 | Real-Time Feed  | WebSocket, OpenCV      |
-
+T
 ---
 
 ## 🛠 How It Works
