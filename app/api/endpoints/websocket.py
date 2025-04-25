@@ -17,7 +17,8 @@ fd=FaceDetector()
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     counter_v=0
-    closest_list = {"status": "ready"}
+    print("malshan")
+    closest_list = {"status": "yet"}
     try:
         
         while True:
@@ -27,28 +28,35 @@ async def websocket_endpoint(websocket: WebSocket):
             image_bytes = base64.b64decode(data)
             img_array = np.frombuffer(image_bytes, dtype=np.uint8)
             img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+            
             closest_list=dm.use_model(img)
-      
-            if counter_v<=10:
-                closest_list=dm.use_model(img)
-                counter_v+=1
+
             
             if closest_list.get("status") =="ready":
                 closest_list=fd.read_and_detect(img)
+                 
+                if closest_list.get("status") == "stop":
+                    await websocket.send_text(json.dumps(closest_list))
+                    break
+                if closest_list.get("status") == "continue":
+                    
+                    await websocket.send_text(json.dumps(closest_list))
+                   
 
+                else:
+                    await websocket.send_text(json.dumps(closest_list))
+            else:
+                await websocket.send_text(json.dumps(closest_list))  
+            """
             if closest_list.get("status")=="continue":
-                await websocket.send_text(json.dumps(closest_list))
                 closest_list=dm.use_model(img)
-            
-            if closest_list.get("status") =="yet":
-                closest_list=dm.use_model(img)
-            
-            if closest_list.get("status") == "stop":
-                await websocket.send_text(json.dumps(closest_list))
                 
-                break 
-           
-            await websocket.send_text(json.dumps(closest_list)) 
+                await websocket.send_text(json.dumps(closest_list))
+         
+            if closest_list.get("status") =="yet":
+                await websocket.send_text(json.dumps(closest_list))
+                 """ 
+            
 
     except WebSocketDisconnect:
 

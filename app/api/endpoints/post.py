@@ -30,7 +30,7 @@ async def receive(request_data: RequestData):
             random_id = str(uuid.uuid4())
             
             operation_info = client.upsert(
-                collection_name="face",
+                collection_name="face_db",
                 wait=True,
                 points=[
                     PointStruct(
@@ -43,5 +43,5 @@ async def receive(request_data: RequestData):
 
     else:
       
-        return {"status":"not registered"}
+        return {"status":"not *****registered"}
     

@@ -47,7 +47,9 @@ async def send_frames():
             
             elif fdata.get("status") == "continue":
                 print(f"[INFO] {fdata['message']}")
-            
+
+                #websocket = await websockets.connect("ws://localhost:8000/ws")
+
             elif fdata.get("status")=="stop":
                 print(f"stop framing{fdata['message']}")
                 

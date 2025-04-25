@@ -5,24 +5,26 @@ import torch
 from app.services.input_pipeline import Input_pipe  
 import numpy as np
 from app.api.endpoints.health import client
+from collections import Counter
 
 make_data= Input_pipe()
 face_recognizer = InceptionResnetV1(pretrained='vggface2').eval()
-embeddings = np.load(r"C:\Users\HP\dis\app\models\embeddings_.npy")
-labels = np.load(r"C:\Users\HP\dis\app\models\labels_.npy")
-dist=[]
+#embeddings = np.load(r"C:\Users\HP\dis\app\models\embeddings_.npy")
+#labels = np.load(r"C:\Users\HP\dis\app\models\labels_.npy")
+
 embedding_list=[]
 
 class FaceDetector:
     def __init__(self):
 
         self.detector = MTCNN(keep_all=True)  
-
+        self.dist=[]
+        self.name=[]
     def read_and_detect(self,frame):
 
         rgb_frame=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         boxes,_=self.detector.detect(rgb_frame)
-        print("5")
+      
         if boxes is not None:
             shape_=boxes.shape[0]
             big_box=np.ones([shape_,4])
@@ -51,33 +53,49 @@ class FaceDetector:
             vector=nor_embeddings.flatten().tolist()
          
             search_result=client.search(
-            collection_name="face",
+            collection_name="face_db",
             query_vector=vector,  # should match the size of your vectors
             limit=1  # Number of nearest vectors to return
                  )
             if search_result:
                 distances = [result.score for result in search_result]
-                dist.append(distances)
+                self.dist.append(distances)
+
+                for result in search_result:
+                    name = result.payload.get("name") if result.payload else None
+                    self.name.append(name)
+               
+               
             else:
                 distance=None
     
-            dis_flattened=[item for sublist in dist for item in sublist]
-            cou = len([i for i in dis_flattened if 8<i])
+            dis_flattened=[item for sublist in self.dist for item in sublist]
+            cou = len([i for i in dis_flattened if 0.5>i])
+            name_counts = Counter([name for name in self.name if name is not None])
 
-            if (len(dist)>25):
+# Get the most common name
+            if name_counts:
+                most_common_name, name_freq = name_counts.most_common(1)[0]
+            else:
+                most_common_name, name_freq = None, 0
 
+            if (len(self.dist)>25):
+                self.dist=[]
                 if cou>15:
-                    return {"status":"continue",
-                            "message":"registered"}
+                    return {
+                    "status": "continue",
+                    "message": f"registered ones-{most_common_name}"
+                }
+
                 else:
                     return {"status":"stop",
                             "message":"un registered"}
                     
             else:
-                return {"status":"continuee"}
+                return {"status":"cont"}
 
         else:
             return {
-                    "status":"no face detected"
+                    "status":"ca"
                     }
     
